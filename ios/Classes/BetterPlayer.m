@@ -570,26 +570,23 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
     if (speed == 1.0 || speed == 0.0) {
         _playerRate = 1;
         result(nil);
-    } else if (speed < 0 || speed > 10.0) {  // 允许更高的倍速
+    } else if (speed < 0 || speed > 10.0) {
         result([FlutterError errorWithCode:@"unsupported_speed"
                                    message:@"Speed must be >= 0.0 and <= 10.0"
                                    details:nil]);
     } else {
-        // 直接判断是否支持倍速播放，去掉多余的判断
         _playerRate = speed;
         result(nil);
     }
 
-    // 设置 AVPlayer 的倍速
     if (_isPlaying) {
         _player.rate = _playerRate;
     }
 
-    // 优化缓存策略，支持倍速播放时的缓存
     if (speed > 1.0) {
-        _player.currentItem.preferredForwardBufferDuration = 10.0;  // 提高缓存时间
+        _player.currentItem.preferredForwardBufferDuration = 10.0;
     } else {
-        _player.currentItem.preferredForwardBufferDuration = 3.0;  // 恢复正常缓存
+        _player.currentItem.preferredForwardBufferDuration = 3.0;
     }
 }
 
