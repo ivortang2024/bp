@@ -216,6 +216,7 @@ class BetterPlayerController {
   bool? _wasPlayingBeforeSeek;
   final bool _isIOS = Platform.isIOS;
   final Lock lock = Lock();
+  bool isPauseForSeek = false;
 
   BetterPlayerController(
     this.betterPlayerConfiguration, {
@@ -662,7 +663,6 @@ class BetterPlayerController {
     await videoPlayerController!.pauseWithoutPlayStatus();
   }
 
-  bool _isSeekPause = false;
   ///Move player to specific position/moment of the video.
   Future<void> seekTo(Duration moment) async {
     if (videoPlayerController == null) {
@@ -985,7 +985,7 @@ class BetterPlayerController {
     final wasPlayingBeforeChange = isPlaying()!;
     pause();
     await setupDataSource(betterPlayerDataSource!.copyWith(url: url));
-    seekTo(position!);
+    await seekTo(position!);
     if (wasPlayingBeforeChange) {
       play();
     }
@@ -1195,7 +1195,6 @@ class BetterPlayerController {
         if (_isIOS && !_allowPlayAfterSeek) {
           _allowPlayAfterSeek = true;
           await play();
-          _isSeekPause = false;
         }
         break;
       default:

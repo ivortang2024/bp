@@ -201,12 +201,15 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget>
       if (bufferedEndPosition != null) {
         final difference = bufferedEndPosition - position;
 
-        /// for ios seekTo hang
-        // if (latestValue.isPlaying &&
-        if(latestValue.isBuffering &&
+        if (Platform.isAndroid &&
+            latestValue.isPlaying &&
+            latestValue.isBuffering &&
             difference.inMilliseconds < _bufferingInterval) {
           return true;
         }
+
+        /// for ios seekTo hang
+        if(Platform.isIOS && latestValue.isBuffering) return true;
       }
     }
     return false;

@@ -794,7 +794,8 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       },
       onHorizontalDragEnd: (DragEndDetails details) {
         if (_controllerWasPlaying) {
-          controller.play();
+          // for iOS seekTo hang
+          if(Platform.isAndroid) controller.play();
         }
       },
       onTapDown: (TapDownDetails details) {
