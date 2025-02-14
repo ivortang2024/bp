@@ -213,7 +213,6 @@ class BetterPlayerController {
 
   /// for iOS seekTo hang
   bool _allowPlayAfterSeek = true;
-  bool? _wasPlayingBeforeSeek;
   final bool _isIOS = Platform.isIOS;
   final Lock lock = Lock();
   bool isPauseForSeek = false;
@@ -630,7 +629,6 @@ class BetterPlayerController {
     if (_appLifecycleState == AppLifecycleState.resumed) {
       await videoPlayerController!.play();
       _hasCurrentDataSourceStarted = true;
-      _wasPlayingBeforeSeek = true;
       _postEvent(BetterPlayerEvent(BetterPlayerEventType.play));
       _postControllerEvent(BetterPlayerControllerEvent.play);
     }
@@ -675,7 +673,7 @@ class BetterPlayerController {
     await lock.synchronized(() async {
       if (_isIOS) {
         _allowPlayAfterSeek = false;
-        await pause();
+        await pauseWithoutPlayStatus();
       }
       await videoPlayerController!.seekTo(moment);
     });

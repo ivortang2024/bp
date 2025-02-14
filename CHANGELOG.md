@@ -1,3 +1,4 @@
+## base on 0.0.84 fix seekTo hang on iOS 
 ## 0.0.84
 * [BREAKING_CHANGE] Updated min. Flutter version to 3.3.0 and min. Dart version to 3.0.0.
 * Recreated example project.

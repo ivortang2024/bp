@@ -46,7 +46,7 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage>{
     );
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
     _betterPlayerController.setupDataSource(dataSource);
-    print('开始播放');
+    print('开始播放...');
     super.initState();
   }
 

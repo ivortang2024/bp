@@ -238,7 +238,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           break;
 
         case VideoEventType.play:
-          play();
+          if (!Platform.isIOS) play();
           break;
         case VideoEventType.pause:
           pause();
@@ -449,7 +449,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   Future<void> pauseWithoutPlayStatus() async {
-    await _applyPlayPause();
+    if (!_created || _isDisposed) {
+      return;
+    }
+    await _videoPlayerPlatform.pause(_textureId);
   }
 
   Future<void> _applyLooping() async {
@@ -465,6 +468,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
     _timer?.cancel();
     if (value.isPlaying) {
+      print('call platform play');
       await _videoPlayerPlatform.play(_textureId);
       _timer = Timer.periodic(
         const Duration(milliseconds: 300),
@@ -554,7 +558,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _updatePosition(position);
 
     /// for iOS seekTo hang
-    if(Platform.isAndroid) {
+    if (Platform.isAndroid) {
       if (isPlaying) {
         play();
       } else {
@@ -795,7 +799,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       onHorizontalDragEnd: (DragEndDetails details) {
         if (_controllerWasPlaying) {
           // for iOS seekTo hang
-          if(Platform.isAndroid) controller.play();
+          if (Platform.isAndroid) controller.play();
         }
       },
       onTapDown: (TapDownDetails details) {
