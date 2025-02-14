@@ -141,14 +141,10 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget>
 
   void _showSpeedChooserWidget() {
     _showModalBottomSheet([
-      _buildSpeedRow(0.25),
-      _buildSpeedRow(0.5),
-      _buildSpeedRow(0.75),
       _buildSpeedRow(1.0),
-      _buildSpeedRow(1.25),
       _buildSpeedRow(1.5),
-      _buildSpeedRow(1.75),
       _buildSpeedRow(2.0),
+      _buildSpeedRow(3.0),
     ]);
   }
 
@@ -209,7 +205,10 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget>
         }
 
         /// for ios seekTo hang
-        if(Platform.isIOS && latestValue.isBuffering) return true;
+        if (Platform.isIOS &&
+            (latestValue.isBuffering ||
+                !betterPlayerController!.allowPlayAfterSeek) &&
+            difference.inMilliseconds < _bufferingInterval) return true;
       }
     }
     return false;

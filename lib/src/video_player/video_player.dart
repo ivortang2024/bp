@@ -33,6 +33,7 @@ class VideoPlayerValue {
     this.speed = 1.0,
     this.errorDescription,
     this.isPip = false,
+    this.isSeeking = false,
   });
 
   /// Returns an instance with a `null` [Duration].
@@ -87,6 +88,8 @@ class VideoPlayerValue {
   ///Is in Picture in Picture Mode
   final bool isPip;
 
+  bool isSeeking;
+
   /// Indicates whether or not the video has been loaded and is ready to play.
   bool get initialized => duration != null;
 
@@ -107,6 +110,7 @@ class VideoPlayerValue {
     return aspectRatio;
   }
 
+
   /// Returns a new instance that has the same values as this current instance,
   /// except for any overrides passed in as arguments to [copyWidth].
   VideoPlayerValue copyWith({
@@ -122,6 +126,7 @@ class VideoPlayerValue {
     String? errorDescription,
     double? speed,
     bool? isPip,
+    bool? isSeeking,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -136,6 +141,7 @@ class VideoPlayerValue {
       speed: speed ?? this.speed,
       errorDescription: errorDescription ?? this.errorDescription,
       isPip: isPip ?? this.isPip,
+      isSeeking: isSeeking ?? this.isSeeking,
     );
   }
 
@@ -234,6 +240,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           if (value.isBuffering) {
             value = value.copyWith(isBuffering: false);
+            value = value.copyWith(isSeeking: false);
           }
           break;
 
@@ -799,7 +806,11 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       onHorizontalDragEnd: (DragEndDetails details) {
         if (_controllerWasPlaying) {
           // for iOS seekTo hang
-          if (Platform.isAndroid) controller.play();
+          if (Platform.isAndroid) {
+            controller.play();
+          }else if(Platform.isIOS){
+            controller.value = controller.value.copyWith(isSeeking: true);
+          }
         }
       },
       onTapDown: (TapDownDetails details) {
