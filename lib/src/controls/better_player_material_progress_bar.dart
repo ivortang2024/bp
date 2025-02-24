@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:better_player/better_player.dart';
 import 'package:better_player/src/video_player/video_player.dart';
 import 'package:better_player/src/video_player/video_player_platform_interface.dart';
@@ -101,7 +102,8 @@ class _VideoProgressBarState
         }
 
         if (_controllerWasPlaying) {
-          betterPlayerController?.play();
+          // for iOS seekTo hang
+          if(!Platform.isIOS) betterPlayerController?.play();
           shouldPlayAfterDragEnd = true;
         }
         _setupUpdateBlockTimer();

@@ -21,18 +21,20 @@ AVPictureInPictureController *_pipController;
 
 @implementation BetterPlayer
 - (instancetype)initWithFrame:(CGRect)frame {
-    self = [super init];
+    self = [super init]; // 如果是UIView子类，应改为 [super initWithFrame:frame]
     NSAssert(self, @"super init cannot be nil");
     _isInitialized = false;
     _isPlaying = false;
     _disposed = false;
     _player = [[AVPlayer alloc] init];
     _player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-    ///Fix for loading large videos
     if (@available(iOS 10.0, *)) {
         _player.automaticallyWaitsToMinimizeStalling = false;
     }
     self._observersAdded = false;
+    _playerRate = 1.0; // 默认播放速率
+    _key = @"defaultKey"; // 假设_key需要初始化
+    NSLog(@"BetterPlayer initWithFrame: %@", NSStringFromCGRect(frame));
     return self;
 }
 
@@ -65,6 +67,11 @@ AVPictureInPictureController *_pipController;
                                                      name:AVPlayerItemDidPlayToEndTimeNotification
                                                    object:item];
         self._observersAdded = true;
+    }
+
+    if (item) {
+        [item addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
+        NSLog(@"为AVPlayerItem添加status观察者");
     }
 }
 
@@ -314,84 +321,73 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
 
 }
 
-- (void)observeValueForKeyPath:(NSString*)path
-                      ofObject:(id)object
-                        change:(NSDictionary*)change
-                       context:(void*)context {
-
+- (void)observeValueForKeyPath:(NSString *)path ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([path isEqualToString:@"rate"]) {
         if (@available(iOS 10.0, *)) {
-            if (_pipController.pictureInPictureActive == true){
-                if (_lastAvPlayerTimeControlStatus != [NSNull null] && _lastAvPlayerTimeControlStatus == _player.timeControlStatus){
+            if (_pipController.pictureInPictureActive == YES) {
+                if (_lastAvPlayerTimeControlStatus != [NSNull null] && _lastAvPlayerTimeControlStatus == _player.timeControlStatus) {
                     return;
                 }
 
-                if (_player.timeControlStatus == AVPlayerTimeControlStatusPaused){
+                if (_player.timeControlStatus == AVPlayerTimeControlStatusPaused) {
                     _lastAvPlayerTimeControlStatus = _player.timeControlStatus;
                     if (_eventSink != nil) {
-                      _eventSink(@{@"event" : @"pause"});
+                        _eventSink(@{@"event" : @"pause"});
                     }
                     return;
-
                 }
-                if (_player.timeControlStatus == AVPlayerTimeControlStatusPlaying){
+                if (_player.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
                     _lastAvPlayerTimeControlStatus = _player.timeControlStatus;
                     if (_eventSink != nil) {
-                      _eventSink(@{@"event" : @"play"});
+                        _eventSink(@{@"event" : @"play"});
                     }
                 }
             }
         }
 
-        if (_player.rate == 0 && //if player rate dropped to 0
-            CMTIME_COMPARE_INLINE(_player.currentItem.currentTime, >, kCMTimeZero) && //if video was started
-            CMTIME_COMPARE_INLINE(_player.currentItem.currentTime, <, _player.currentItem.duration) && //but not yet finished
-            _isPlaying) { //instance variable to handle overall state (changed to YES when user triggers playback)
+        if (_player.rate == 0 &&
+            CMTIME_COMPARE_INLINE(_player.currentItem.currentTime, >, kCMTimeZero) &&
+        CMTIME_COMPARE_INLINE(_player.currentItem.currentTime, <, _player.currentItem.duration) &&
+        _isPlaying) {
             [self handleStalled];
         }
     }
 
     if (context == timeRangeContext) {
         if (_eventSink != nil) {
-            NSMutableArray<NSArray<NSNumber*>*>* values = [[NSMutableArray alloc] init];
-            for (NSValue* rangeValue in [object loadedTimeRanges]) {
+            NSMutableArray<NSArray<NSNumber *> *> *values = [[NSMutableArray alloc] init];
+            for (NSValue *rangeValue in [object loadedTimeRanges]) {
                 CMTimeRange range = [rangeValue CMTimeRangeValue];
-                int64_t start = [BetterPlayerTimeUtils FLTCMTimeToMillis:(range.start)];
-                int64_t end = start + [BetterPlayerTimeUtils FLTCMTimeToMillis:(range.duration)];
-                if (!CMTIME_IS_INVALID(_player.currentItem.forwardPlaybackEndTime)) {
-                    int64_t endTime = [BetterPlayerTimeUtils FLTCMTimeToMillis:(_player.currentItem.forwardPlaybackEndTime)];
-                    if (end > endTime){
+                int64_t start = CMTIME_IS_VALID(range.start) ? (int64_t)(CMTimeGetSeconds(range.start) * 1000) : 0;
+                int64_t end = start + (CMTimeGetSeconds(range.duration) * 1000);
+                if (CMTIME_IS_VALID(_player.currentItem.forwardPlaybackEndTime)) {
+                    int64_t endTime = CMTIME_IS_VALID(_player.currentItem.forwardPlaybackEndTime) ? (int64_t)(CMTimeGetSeconds(_player.currentItem.forwardPlaybackEndTime) * 1000) : end;
+                    if (end > endTime) {
                         end = endTime;
                     }
                 }
-
-                [values addObject:@[ @(start), @(end) ]];
+                [values addObject:@[@(start), @(end)]];
             }
             _eventSink(@{@"event" : @"bufferingUpdate", @"values" : values, @"key" : _key});
         }
-    }
-    else if (context == presentationSizeContext){
+    } else if (context == presentationSizeContext) {
         [self onReadyToPlay];
-    }
-
-    else if (context == statusContext) {
-        AVPlayerItem* item = (AVPlayerItem*)object;
+    } else if (context == statusContext) {
+        AVPlayerItem *item = (AVPlayerItem *)object;
         switch (item.status) {
             case AVPlayerItemStatusFailed:
-                NSLog(@"Failed to load video:");
-                NSLog(item.error.debugDescription);
-
+                NSLog(@"Failed to load video: %@", item.error.debugDescription);
                 if (_eventSink != nil) {
                     _eventSink([FlutterError
-                                errorWithCode:@"VideoError"
-                                message:[@"Failed to load video: "
-                                         stringByAppendingString:[item.error localizedDescription]]
-                                details:nil]);
+                                       errorWithCode:@"VideoError"
+                                             message:[@"Failed to load video: " stringByAppendingString:[item.error localizedDescription]]
+                                             details:nil]);
                 }
                 break;
             case AVPlayerItemStatusUnknown:
                 break;
             case AVPlayerItemStatusReadyToPlay:
+                _isInitialized = YES; // 更新初始化状态
                 [self onReadyToPlay];
                 break;
         }
@@ -415,22 +411,37 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
 
 - (void)updatePlayingState {
     if (!_isInitialized || !_key) {
+        NSLog(@"未初始化或缺少key，退出updatePlayingState");
         return;
     }
-    if (!self._observersAdded){
-        [self addObservers:[_player currentItem]];
+
+    // 线程安全地添加观察者
+    @synchronized(self) {
+        if (!self._observersAdded) {
+            [self addObservers:[_player currentItem]];
+            self._observersAdded = YES;
+            NSLog(@"观察者已添加");
+        }
     }
 
+    // 状态检查优化：仅在必要时播放或暂停
     if (_isPlaying) {
-        if (@available(iOS 10.0, *)) {
-            [_player playImmediatelyAtRate:1.0];
-            _player.rate = _playerRate;
+        if ([_player rate] == 0.0) { // 未播放时才调用play
+            if (@available(iOS 10.0, *)) {
+                [_player playImmediatelyAtRate:1.0];
+                _player.rate = _playerRate;
+                NSLog(@"playImmediatelyAtRate: 1.0");
+            } else {
+                [_player play];
+                _player.rate = _playerRate;
+                NSLog(@"play");
+            }
         } else {
-            [_player play];
-            _player.rate = _playerRate;
+            NSLog(@"已在播放，跳过play调用");
         }
     } else {
         [_player pause];
+        NSLog(@"pause");
     }
 }
 
@@ -485,10 +496,21 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
 }
 
 - (void)play {
+    // 防抖：限制0.1秒内只执行一次
+    static NSTimeInterval lastPlayTime = 0;
+    NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+    if (now - lastPlayTime < 0.1) {
+        NSLog(@"Play 调用被限制，距离上次: %fs", now - lastPlayTime);
+        return;
+    }
+    lastPlayTime = now;
+
+    // 更新状态
     _stalledCount = 0;
-    _isStalledCheckStarted = false;
-    _isPlaying = true;
+    _isStalledCheckStarted = NO;
+    _isPlaying = YES;
     [self updatePlayingState];
+    NSLog(@"调用play，线程: %@", [NSThread currentThread]);
 }
 
 - (void)pause {
@@ -522,6 +544,8 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
     if (_isPlaying){
         [_player pause];
     }
+
+    printf("调用seekto");
 
     [_player seekToTime:CMTimeMake(location, 1000)
         toleranceBefore:kCMTimeZero
