@@ -245,7 +245,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           break;
 
         case VideoEventType.play:
-          if (!Platform.isIOS) play();
+          // if (!Platform.isIOS) play();
+          play();
           break;
         case VideoEventType.pause:
           pause();
@@ -565,13 +566,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _updatePosition(position);
 
     /// for iOS seekTo hang
-    if (Platform.isAndroid) {
+    // if (Platform.isAndroid) {
       if (isPlaying) {
         play();
       } else {
         pause();
       }
-    }
+    // }
   }
 
   /// Sets the audio volume of [this].
@@ -806,11 +807,11 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       onHorizontalDragEnd: (DragEndDetails details) {
         if (_controllerWasPlaying) {
           // for iOS seekTo hang
-          if (Platform.isAndroid) {
+          // if (Platform.isAndroid) {
             controller.play();
-          }else if(Platform.isIOS){
-            controller.value = controller.value.copyWith(isSeeking: true);
-          }
+          // }else if(Platform.isIOS){
+          //   controller.value = controller.value.copyWith(isSeeking: true);
+          // }
         }
       },
       onTapDown: (TapDownDetails details) {

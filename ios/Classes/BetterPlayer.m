@@ -541,16 +541,30 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
 }
 
 - (void)seekTo:(int)location {
-    if (_isPlaying){
+    bool wasPlaying = _isPlaying;
+    if (wasPlaying){
         [_player pause];
     }
-
-    printf("调用seekto");
 
     [_player seekToTime:CMTimeMake(location, 1000)
         toleranceBefore:kCMTimeZero
          toleranceAfter:kCMTimeZero
-    ];
+      completionHandler:^(BOOL finished){
+          if (wasPlaying){
+              _player.rate = _playerRate;
+          }
+      }];
+
+//    if (_isPlaying){
+//        [_player pause];
+//    }
+//
+//    printf("调用seekto");
+//
+//    [_player seekToTime:CMTimeMake(location, 1000)
+//        toleranceBefore:kCMTimeZero
+//         toleranceAfter:kCMTimeZero
+//    ];
 }
 
 - (void)setIsLooping:(bool)isLooping {

@@ -622,7 +622,7 @@ class BetterPlayerController {
 
   Future<void> play() async {
     //// for iOS seekTo hang
-    if (!_allowPlayAfterSeek && _isIOS) return;
+    // if (!_allowPlayAfterSeek && _isIOS) return;
 
     if (videoPlayerController == null) {
       throw StateError("The data source has not been initialized");
@@ -663,7 +663,6 @@ class BetterPlayerController {
     await videoPlayerController!.pauseWithoutPlayStatus();
   }
 
-  int cnt = 0;
   ///Move player to specific position/moment of the video.
   Future<void> seekTo(Duration moment) async {
     if (videoPlayerController == null) {
@@ -673,14 +672,14 @@ class BetterPlayerController {
       throw StateError("The video has not been initialized yet.");
     }
     
-    await lock.synchronized(() async {
-      if (_isIOS) {
-        _allowPlayAfterSeek = false;
-        await pauseWithoutPlayStatus();
-      }
+    // await lock.synchronized(() async {
+    //   if (_isIOS) {
+    //     _allowPlayAfterSeek = false;
+    //     await pause();
+    //   }
+    _wasPlayingBeforePause ??= isPlaying();
       await videoPlayerController!.seekTo(moment);
-      cnt += 1;
-    });
+    // });
 
     _postEvent(BetterPlayerEvent(BetterPlayerEventType.seekTo,
         parameters: <String, dynamic>{_durationParameter: moment}));
@@ -1194,11 +1193,12 @@ class BetterPlayerController {
         _postEvent(BetterPlayerEvent(BetterPlayerEventType.bufferingEnd));
 
         /// for iOS seekTo hang
-        if (_isIOS && !_allowPlayAfterSeek) {
-          _allowPlayAfterSeek = true;
-          await play();
-          print('cnt is:$cnt');
-          // cnt = 0;
+        // if (_isIOS && !_allowPlayAfterSeek) {
+        //   _allowPlayAfterSeek = true;
+        //   play();
+        // }
+        if(_wasPlayingBeforePause == true){
+          play();
         }
         break;
       default:
@@ -1220,7 +1220,8 @@ class BetterPlayerController {
     if (_videoPlayerValueOnError != null) {
       final position = _videoPlayerValueOnError!.position;
       await seekTo(position);
-      if (!_isIOS) await play();
+      await play();
+      // if (!_isIOS) await play();
       _videoPlayerValueOnError = null;
     }
   }

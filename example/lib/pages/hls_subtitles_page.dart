@@ -9,7 +9,7 @@ class HlsSubtitlesPage extends StatefulWidget {
   _HlsSubtitlesPageState createState() => _HlsSubtitlesPageState();
 }
 
-class _HlsSubtitlesPageState extends State<HlsSubtitlesPage>{
+class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
   late BetterPlayerController _betterPlayerController;
 
   @override
@@ -34,19 +34,21 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage>{
 
     BetterPlayerConfiguration betterPlayerConfiguration =
         BetterPlayerConfiguration(
-            controlsConfiguration: controlsConfiguration,
-            aspectRatio: 16 / 9,
-            fit: BoxFit.contain,
-            autoPlay: true,
-            allowedScreenSleep: false,
-        );
+      controlsConfiguration: controlsConfiguration,
+      aspectRatio: 16 / 9,
+      fit: BoxFit.contain,
+      autoPlay: true,
+      startAt: Duration(minutes: 20),
+      allowedScreenSleep: false,
+    );
     BetterPlayerDataSource dataSource = BetterPlayerDataSource(
       BetterPlayerDataSourceType.network,
       Constants.hlsPlaylistUrl,
     );
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
-    _betterPlayerController.setupDataSource(dataSource);
-    print('开始播放...');
+    _betterPlayerController
+        .setupDataSource(dataSource);
+        // .then((_) => _betterPlayerController.play());
     super.initState();
   }
 

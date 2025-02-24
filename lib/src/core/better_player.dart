@@ -253,7 +253,7 @@ class _BetterPlayerState extends State<BetterPlayer>
 
     // The wakelock plugins checks whether it needs to perform an action internally,
     // so we do not need to check Wakelock.isEnabled.
-    WakelockPlus.disable();
+    // WakelockPlus.disable();
 
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: _betterPlayerConfiguration.systemOverlaysAfterFullScreen);

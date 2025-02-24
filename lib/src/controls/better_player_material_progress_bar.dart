@@ -102,8 +102,7 @@ class _VideoProgressBarState
         }
 
         if (_controllerWasPlaying) {
-          // for iOS seekTo hang
-          if(!Platform.isIOS) betterPlayerController?.play();
+          betterPlayerController?.play();
           shouldPlayAfterDragEnd = true;
         }
         _setupUpdateBlockTimer();
