@@ -13,8 +13,8 @@ class BetterPlayerControllerProvider extends InheritedWidget {
 
   @override
   bool updateShouldNotify(BetterPlayerControllerProvider old) {
-    return controller != old.controller ||
-        controller.betterPlayerDataSource != old.controller.betterPlayerDataSource;
+    return controller != old.controller;
+        // controller.betterPlayerDataSource != old.controller.betterPlayerDataSource;
   }
 }
 

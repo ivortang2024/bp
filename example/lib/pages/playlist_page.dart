@@ -18,15 +18,17 @@ class _PlaylistPageState extends State<PlaylistPage> {
 
   _PlaylistPageState() {
     _betterPlayerConfiguration = BetterPlayerConfiguration(
-      aspectRatio: 1,
+      // aspectRatio: 1,
+      allowedScreenSleep: false,
       fit: BoxFit.cover,
-      placeholderOnTop: true,
-      showPlaceholderUntilPlay: true,
-      subtitlesConfiguration: BetterPlayerSubtitlesConfiguration(fontSize: 10),
-      deviceOrientationsAfterFullScreen: [
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ],
+      autoPlay: true,
+      // placeholderOnTop: true,
+      // showPlaceholderUntilPlay: true,
+      // subtitlesConfiguration: BetterPlayerSubtitlesConfiguration(fontSize: 10),
+      // deviceOrientationsAfterFullScreen: [
+      //   DeviceOrientation.portraitUp,
+      //   DeviceOrientation.portraitDown,
+      // ],
     );
     _betterPlayerPlaylistConfiguration = BetterPlayerPlaylistConfiguration(
       loopVideos: true,
@@ -37,31 +39,32 @@ class _PlaylistPageState extends State<PlaylistPage> {
   Future<List<BetterPlayerDataSource>> setupData() async {
     _dataSourceList.add(
       BetterPlayerDataSource(
-          BetterPlayerDataSourceType.network, Constants.forBiggerBlazesUrl,
-          subtitles: BetterPlayerSubtitlesSource.single(
-            type: BetterPlayerSubtitlesSourceType.file,
-            url: await Utils.getFileUrl(Constants.fileExampleSubtitlesUrl),
-          ),
-          placeholder: Image.network(
-            Constants.catImageUrl,
-            fit: BoxFit.cover,
-          )),
+          BetterPlayerDataSourceType.network, Constants.hlsPlaylistUrl,
+          // subtitles: BetterPlayerSubtitlesSource.single(
+          //   type: BetterPlayerSubtitlesSourceType.file,
+          //   url: await Utils.getFileUrl(Constants.fileExampleSubtitlesUrl),
+          // ),
+          // placeholder: Image.network(
+          //   Constants.catImageUrl,
+          //   fit: BoxFit.cover,
+          // )
+      ),
     );
 
     _dataSourceList.add(
       BetterPlayerDataSource(
-        BetterPlayerDataSourceType.network,
-        Constants.bugBuckBunnyVideoUrl,
-        placeholder: Image.network(
-          Constants.catImageUrl,
-          fit: BoxFit.cover,
-        ),
+        BetterPlayerDataSourceType.network,'https://v.cdnlz22.com/20241219/9891_cd2c710e/index.m3u8'
+        // Constants.bugBuckBunnyVideoUrl,
+        // placeholder: Image.network(
+        //   Constants.catImageUrl,
+        //   fit: BoxFit.cover,
+        // ),
       ),
     );
     _dataSourceList.add(
       BetterPlayerDataSource(
-        BetterPlayerDataSourceType.network,
-        Constants.forBiggerJoyridesVideoUrl,
+        BetterPlayerDataSourceType.network,'https://vip.ffzyread2.com/20240924/27158_cf3dc0f7/index.m3u8'
+        // Constants.forBiggerJoyridesVideoUrl,
       ),
     );
 

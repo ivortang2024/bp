@@ -9,6 +9,8 @@ class HlsSubtitlesPage extends StatefulWidget {
 
 class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
   late BetterPlayerController _betterPlayerController;
+  List<String> srcs = Constants.bigestMan;
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -51,6 +53,7 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
             handleLifecycle: true,
             autoPlay: true,
             autoDispose: false,
+            startAt: Duration(seconds: 0),
             subtitlesConfiguration: BetterPlayerSubtitlesConfiguration(
               fontSize: 16.0,
             ));
@@ -60,7 +63,28 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
             BetterPlayerNotificationConfiguration(showNotification: true),
         useAsmsSubtitles: true);
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
-    changeUrl(betterPlayerConfiguration);
+    // changeUrl(betterPlayerConfiguration);
+    _betterPlayerController.addEventsListener(_event);
+    play();
+  }
+
+  void play() async {
+    // _betterPlayerController.removeEventsListener(_event);
+    if (_currentIndex >= srcs.length) _currentIndex = 0;
+    BetterPlayerDataSource dataSource = BetterPlayerDataSource(
+        BetterPlayerDataSourceType.network, srcs[_currentIndex]);
+    await _betterPlayerController.setupDataSource(dataSource);
+    _betterPlayerController.seekTo(Duration(seconds: 0));
+  }
+
+  void _event(BetterPlayerEvent event) async {
+    if (event.betterPlayerEventType == BetterPlayerEventType.finished) {
+      _betterPlayerController.clearCache();
+      _betterPlayerController.pause();
+      _betterPlayerController.seekTo(Duration(seconds: 0));
+      _currentIndex++;
+      play();
+    }
   }
 
   Future<void> changeUrl(
@@ -70,14 +94,16 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
 
     for (int i = 0; i < 20; i++) {
       String url = i % 2 == 0 ? url1 : url2;
-      BetterPlayerDataSource dataSource =
-          BetterPlayerDataSource(BetterPlayerDataSourceType.network, url);
+      BetterPlayerDataSource dataSource = BetterPlayerDataSource(
+          BetterPlayerDataSourceType.network, url,
+          notificationConfiguration:
+              BetterPlayerNotificationConfiguration(showNotification: true));
       await _betterPlayerController.setupDataSource(dataSource);
+      _betterPlayerController.seekTo(Duration(seconds: 0));
 
       await Future.delayed(Duration(seconds: 20));
       // await _betterPlayerController.pause();
     }
-    _betterPlayerController.play();
   }
 
   @override
