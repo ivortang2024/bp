@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:better_player/better_player.dart';
 import 'package:example/constants.dart';
 import 'package:flutter/material.dart';
@@ -14,42 +12,85 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
 
   @override
   void initState() {
+    super.initState();
+
     BetterPlayerControlsConfiguration controlsConfiguration =
         BetterPlayerControlsConfiguration(
-            controlBarColor: Colors.black26,
-            iconsColor: Colors.white,
-            playIcon: Icons.play_arrow_outlined,
-            progressBarPlayedColor: Colors.indigo,
-            progressBarHandleColor: Colors.indigo,
-            skipBackIcon: Icons.replay_10_outlined,
-            skipForwardIcon: Icons.forward_10_outlined,
-            backwardSkipTimeInMilliseconds: 10000,
-            forwardSkipTimeInMilliseconds: 10000,
-            controlBarHeight: 40,
-            loadingColor: Colors.red,
-            overflowModalColor: Colors.black54,
-            overflowModalTextColor: Colors.white,
-            overflowMenuIconsColor: Colors.white,
-            playerTheme: BetterPlayerTheme.material);
+      controlBarColor: Colors.black26,
+      iconsColor: Colors.white,
+      playerTheme: BetterPlayerTheme.material,
+      playIcon: Icons.play_arrow_outlined,
+      progressBarPlayedColor: Colors.indigo,
+      progressBarHandleColor: Colors.indigo,
+      skipBackIcon: Icons.replay_10_outlined,
+      skipForwardIcon: Icons.forward_10_outlined,
+      backwardSkipTimeInMilliseconds: 10000,
+      forwardSkipTimeInMilliseconds: 10000,
+      enableSkips: true,
+      enableFullscreen: true,
+      enablePip: true,
+      enablePlayPause: true,
+      enableMute: true,
+      enableAudioTracks: true,
+      enableProgressText: true,
+      enableSubtitles: true,
+      showControlsOnInitialize: true,
+      enablePlaybackSpeed: true,
+      controlBarHeight: 40,
+      loadingColor: Colors.red,
+      overflowModalColor: Colors.black54,
+      overflowModalTextColor: Colors.white,
+      overflowMenuIconsColor: Colors.white,
+    );
 
     BetterPlayerConfiguration betterPlayerConfiguration =
         BetterPlayerConfiguration(
-      controlsConfiguration: controlsConfiguration,
-      aspectRatio: 16 / 9,
-      fit: BoxFit.contain,
-      autoPlay: true,
-      startAt: Duration(minutes: 20),
-      allowedScreenSleep: false,
-    );
+            controlsConfiguration: controlsConfiguration,
+            // aspectRatio: 16 / 9,
+            fit: BoxFit.contain,
+            handleLifecycle: true,
+            autoPlay: true,
+            autoDispose: false,
+            subtitlesConfiguration: BetterPlayerSubtitlesConfiguration(
+              fontSize: 16.0,
+            ));
     BetterPlayerDataSource dataSource = BetterPlayerDataSource(
-      BetterPlayerDataSourceType.network,
-      Constants.hlsPlaylistUrl,
-    );
+        BetterPlayerDataSourceType.network, Constants.hlsPlaylistUrl,
+        notificationConfiguration:
+            BetterPlayerNotificationConfiguration(showNotification: true),
+        useAsmsSubtitles: true);
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
-    _betterPlayerController
-        .setupDataSource(dataSource);
-        // .then((_) => _betterPlayerController.play());
-    super.initState();
+    changeUrl(betterPlayerConfiguration);
+  }
+
+  Future<void> changeUrl(
+      BetterPlayerConfiguration betterPlayerConfiguration) async {
+    String url1 = 'https://v.cdnlz22.com/20241219/9891_cd2c710e/index.m3u8';
+    String url2 = Constants.hlsPlaylistUrl;
+
+    for (int i = 0; i < 20; i++) {
+      String url = i % 2 == 0 ? url1 : url2;
+      BetterPlayerDataSource dataSource =
+          BetterPlayerDataSource(BetterPlayerDataSourceType.network, url);
+      await _betterPlayerController.setupDataSource(dataSource);
+
+      await Future.delayed(Duration(seconds: 20));
+      // await _betterPlayerController.pause();
+    }
+    _betterPlayerController.play();
+  }
+
+  @override
+  void reassemble() {
+    // TODO: implement reassemble
+    super.reassemble();
+  }
+
+  @override
+  void dispose() {
+    _betterPlayerController.videoPlayerController?.dispose();
+    _betterPlayerController.dispose();
+    super.dispose();
   }
 
   @override

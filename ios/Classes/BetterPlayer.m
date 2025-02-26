@@ -5,6 +5,9 @@
 #import "BetterPlayer.h"
 #import <better_player/better_player-Swift.h>
 
+#import <AVFoundation/AVFoundation.h>
+#import <UIKit/UIKit.h>
+
 static void* timeRangeContext = &timeRangeContext;
 static void* statusContext = &statusContext;
 static void* playbackLikelyToKeepUpContext = &playbackLikelyToKeepUpContext;
@@ -12,12 +15,17 @@ static void* playbackBufferEmptyContext = &playbackBufferEmptyContext;
 static void* playbackBufferFullContext = &playbackBufferFullContext;
 static void* presentationSizeContext = &presentationSizeContext;
 
-
 #if TARGET_OS_IOS
 void (^__strong _Nonnull _restoreUserInterfaceForPIPStopCompletionHandler)(BOOL);
 API_AVAILABLE(ios(9.0))
 AVPictureInPictureController *_pipController;
 #endif
+
+@interface BetterPlayer()
+@property (nonatomic, strong) AVPlayer *player;
+@property (nonatomic, strong) AVAudioSession *audioSession;
+@property (nonatomic, assign) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
+@end
 
 @implementation BetterPlayer
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -35,13 +43,67 @@ AVPictureInPictureController *_pipController;
     _playerRate = 1.0; // 默认播放速率
     _key = @"defaultKey"; // 假设_key需要初始化
     NSLog(@"BetterPlayer initWithFrame: %@", NSStringFromCGRect(frame));
+
+    // 配置后台播放
+    // 监听应用生命周期事件
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleAppWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleAppDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+
+    // 确保音频会话始终保持活跃
+    [self configureAudioSession];
+
+
     return self;
 }
 
+- (void)configureAudioSession {
+    NSError *error = nil;
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    [session setCategory:AVAudioSessionCategoryPlayback error:&error];
+    if (error) {
+        NSLog(@"设置音频会话失败: %@", error.localizedDescription);
+    }
+
+    [session setActive:YES error:&error];
+    if (error) {
+        NSLog(@"激活音频会话失败: %@", error.localizedDescription);
+    }
+}
+
+- (void)handleAppWillResignActive {
+    NSLog(@"应用进入后台，保持音频会话");
+    [self configureAudioSession];
+}
+
+- (void)handleAppDidBecomeActive {
+    NSLog(@"应用回到前台，确保音频会话激活");
+    [self configureAudioSession];
+}
+// 视图返回
 - (nonnull UIView *)view {
     BetterPlayerView *playerView = [[BetterPlayerView alloc] initWithFrame:CGRectZero];
     playerView.player = _player;
     return playerView;
+}
+
+// 在后台时保持播放器继续播放
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    NSError *error = nil;
+    [[AVAudioSession sharedInstance] setActive:YES error:&error];
+    if (error) {
+        NSLog(@"设置后台音频会话失败: %@", error.localizedDescription);
+    } else {
+        NSLog(@"后台音频会话已激活");
+    }
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    if (self._observersAdded) {
+        [_player removeObserver:self forKeyPath:@"status"];
+        [_player.currentItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
+        [_player.currentItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
+    }
 }
 
 - (void)addObservers:(AVPlayerItem*)item {
@@ -350,6 +412,18 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
         CMTIME_COMPARE_INLINE(_player.currentItem.currentTime, <, _player.currentItem.duration) &&
         _isPlaying) {
             [self handleStalled];
+        }
+
+        if (context == &statusContext) {
+            if (_player.status == AVPlayerStatusReadyToPlay) {
+                NSLog(@"Player ready to play");
+            } else if (_player.status == AVPlayerStatusFailed) {
+                NSLog(@"Player failed: %@", _player.error);
+            }
+        } else if (context == &playbackBufferEmptyContext) {
+            NSLog(@"Buffer empty");
+        } else if (context == &playbackLikelyToKeepUpContext) {
+            NSLog(@"Buffer likely to keep up: %@", change[NSKeyValueChangeNewKey]);
         }
     }
 
