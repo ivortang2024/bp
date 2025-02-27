@@ -144,7 +144,6 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget>
       _buildSpeedRow(1.0),
       _buildSpeedRow(1.5),
       _buildSpeedRow(2.0),
-      _buildSpeedRow(3.0),
     ]);
   }
 
@@ -183,7 +182,11 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget>
   ///Latest value can be null
   bool isLoading(VideoPlayerValue? latestValue) {
     if (latestValue != null) {
-      if (!latestValue.isPlaying && latestValue.duration == null) {
+      // if (!latestValue.isPlaying && latestValue.duration == null) {
+      //   return true;
+      // }
+      // for reSetupDataSource
+      if (latestValue.duration == null) {
         return true;
       }
 
@@ -202,12 +205,6 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget>
             difference.inMilliseconds < _bufferingInterval) {
           return true;
         }
-
-        /// for ios seekTo hang
-        // if (Platform.isIOS &&
-        //     (latestValue.isBuffering ||
-        //         !betterPlayerController!.allowPlayAfterSeek) &&
-        //     difference.inMilliseconds < _bufferingInterval) return true;
       }
     }
     return false;

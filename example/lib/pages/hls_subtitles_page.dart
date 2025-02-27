@@ -68,7 +68,7 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
     play();
   }
 
-  void play() async {
+  Future<void> play() async {
     // _betterPlayerController.removeEventsListener(_event);
     if (_currentIndex >= srcs.length) _currentIndex = 0;
     BetterPlayerDataSource dataSource = BetterPlayerDataSource(
@@ -92,10 +92,10 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
     String url1 = 'https://v.cdnlz22.com/20241219/9891_cd2c710e/index.m3u8';
     String url2 = Constants.hlsPlaylistUrl;
 
-    for (int i = 0; i < 20; i++) {
-      String url = i % 2 == 0 ? url1 : url2;
+    for (int i = 0; i < srcs.length; i++) {
+      _betterPlayerController.pause();
       BetterPlayerDataSource dataSource = BetterPlayerDataSource(
-          BetterPlayerDataSourceType.network, url,
+          BetterPlayerDataSourceType.network, srcs[i],
           notificationConfiguration:
               BetterPlayerNotificationConfiguration(showNotification: true));
       await _betterPlayerController.setupDataSource(dataSource);

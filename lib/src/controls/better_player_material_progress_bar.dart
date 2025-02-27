@@ -170,7 +170,10 @@ class _VideoProgressBarState
         onFinishedLastSeek();
         if (relative >= 1) {
           lastSeek = controller!.value.duration;
-          await betterPlayerController!.seekTo(controller!.value.duration!);
+          // await betterPlayerController!.seekTo(controller!.value.duration!);
+          if (!controller!.value.initialized) return;
+          await betterPlayerController!
+              .seekTo(controller!.value.duration ?? Duration(seconds: 0));
           onFinishedLastSeek();
         }
       }
