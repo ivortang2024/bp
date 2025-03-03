@@ -20,7 +20,8 @@ class _CachePageState extends State<CachePage> {
     );
     _betterPlayerDataSource = BetterPlayerDataSource(
       BetterPlayerDataSourceType.network,
-      Constants.phantomVideoUrl,
+      // Constants.phantomVideoUrl,
+      'https://v.cdnlz22.com/20241219/9891_cd2c710e/index.m3u8',
       cacheConfiguration: BetterPlayerCacheConfiguration(
         useCache: true,
         preCacheSize: 10 * 1024 * 1024,

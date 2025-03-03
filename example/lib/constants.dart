@@ -58,6 +58,7 @@ class Constants {
       "https://eng-demo.cablecast.tv/segmented-captions/vod.m3u8";
 
   static List<String> bigestMan = [
+    'https://vip.ffzy-play5.com/20221102/951_beb6f388/index.m3u8',
     'https://vip.lz-cdn9.com/20220422/6587_6c857c75/index.m3u8',
     'https://vip.lz-cdn9.com/20220422/6588_f4230038/index.m3u8',
     'https://vip.lz-cdn9.com/20220422/6589_dc699fc8/index.m3u8',

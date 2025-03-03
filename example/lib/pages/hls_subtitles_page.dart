@@ -42,7 +42,7 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
       loadingColor: Colors.red,
       overflowModalColor: Colors.black54,
       overflowModalTextColor: Colors.white,
-      overflowMenuIconsColor: Colors.white,
+      overflowMenuIconsColor: Colors.white
     );
 
     BetterPlayerConfiguration betterPlayerConfiguration =
