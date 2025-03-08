@@ -58,7 +58,6 @@ class Constants {
       "https://eng-demo.cablecast.tv/segmented-captions/vod.m3u8";
 
   static List<String> bigestMan = [
-    // 'https://surrit.com/4531bbe8-8c7f-4d90-98b9-c0bd58838461/842x480/video.m3u8',
     // 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8',
     // 'https://v5.qrssv.com/202411/28/mMGDe1xBp024/video/index.m3u8',
     // 'https://vip.ffzy-play5.com/20221102/951_beb6f388/index.m3u8',
