@@ -29,7 +29,8 @@ class _BasicPlayerPageState extends State<BasicPlayerPage> {
             aspectRatio: 16 / 9,
             child: BetterPlayer.network(
               // Constants.forBiggerBlazesUrl,
-              'https://v.cdnlz22.com/20241219/9891_cd2c710e/index.m3u8',
+              // 'https://v.cdnlz22.com/20241219/9891_cd2c710e/index.m3u8',
+              'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8',
             ),
           ),
           Padding(

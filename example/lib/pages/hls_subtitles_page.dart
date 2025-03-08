@@ -72,7 +72,16 @@ class _HlsSubtitlesPageState extends State<HlsSubtitlesPage> {
     // _betterPlayerController.removeEventsListener(_event);
     if (_currentIndex >= srcs.length) _currentIndex = 0;
     BetterPlayerDataSource dataSource = BetterPlayerDataSource(
-        BetterPlayerDataSourceType.network, srcs[_currentIndex]);
+        BetterPlayerDataSourceType.network, srcs[_currentIndex],
+        cacheConfiguration: BetterPlayerCacheConfiguration(
+          useCache: false,
+          preCacheSize: 10 * 1024 * 1024,
+          maxCacheSize: 10 * 1024 * 1024,
+          maxCacheFileSize: 10 * 1024 * 1024,
+
+          ///Android only option to use cached video between app sessions
+          key: "testCacheKey",
+        ));
     await _betterPlayerController.setupDataSource(dataSource);
     _betterPlayerController.seekTo(Duration(seconds: 0));
   }
